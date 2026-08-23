@@ -128,6 +128,81 @@ body {
 
 .menu-backdrop { display: none; }
 
+/* ---------- Loader ---------- */
+
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  background: #000000;
+}
+.loader.exit {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.55s ease 0.05s;
+}
+
+.loader-fill {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  clip-path: inset(calc(50% - 46px) calc(50% - 46px) round 16px);
+  will-change: clip-path;
+}
+.loader.done .loader-fill {
+  clip-path: inset(0 0 0 round 0px);
+  transition: clip-path 0.75s cubic-bezier(0.83, 0, 0.17, 1);
+}
+
+.loader-box {
+  position: relative;
+  z-index: 2;
+  width: 92px;
+  height: 92px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(0, 0, 0, 0.6));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 0 44px rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  transition: opacity 0.3s ease;
+  will-change: transform;
+}
+.loader.done .loader-box { opacity: 0; }
+
+.loader-bar {
+  position: absolute;
+  bottom: 15px;
+  left: 17px;
+  right: 17px;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+.loader-bar i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: 1px;
+  background: #ffffff;
+}
+
+body.is-loading { overflow: hidden !important; height: 100%; }
+body.is-loading .appear,
+body.is-loading .hero-photo,
+body.is-loading .copyright,
+body.is-loading .badge-star,
+body.is-loading .hero h1 em { animation-play-state: paused !important; }
+
 /* ---------- Header ---------- */
 
 .header {
@@ -623,7 +698,16 @@ body.menu-open .burger-bar:nth-child(3) { transform: translateY(-6.5px) rotate(-
 }
 </style>
 </head>
-<body style="background:#000;color:#fff">
+<body style="background:#000;color:#fff" class="is-loading">
+
+<div class="loader" id="loader">
+  <div class="loader-fill" aria-hidden="true"></div>
+  <div class="loader-box" aria-hidden="true">
+    <span class="loader-num">0%</span>
+    <span class="loader-bar"><i></i></span>
+  </div>
+</div>
+<noscript><style>.loader { display: none !important; }</style></noscript>
 
 <div class="grain" aria-hidden="true"></div>
 
@@ -703,6 +787,55 @@ body.menu-open .burger-bar:nth-child(3) { transform: translateY(-6.5px) rotate(-
 
 <script>
 (function () {
+
+  /* ---------- Loader ---------- */
+
+  var loader = document.getElementById('loader');
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function finishLoad() {
+    if (!document.body.classList.contains('is-loading')) return;
+    document.body.classList.remove('is-loading');
+    loader.classList.add('done');
+    setTimeout(function () { loader.classList.add('exit'); }, 950);
+    setTimeout(function () {
+      if (loader.parentNode) loader.parentNode.removeChild(loader);
+    }, 1750);
+  }
+
+  if (!loader || reduceMotion) {
+    if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+    document.body.classList.remove('is-loading');
+  } else {
+    var numEl = loader.querySelector('.loader-num');
+    var barEl = loader.querySelector('.loader-bar i');
+    var boxEl = loader.querySelector('.loader-box');
+    var start = null;
+    var DURATION = 1900;
+
+    function tick(ts) {
+      if (start === null) start = ts;
+      var p = Math.min((ts - start) / DURATION, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      var pct = Math.round(eased * 100);
+      numEl.textContent = pct + '%';
+      barEl.style.width = pct + '%';
+      boxEl.style.transform = 'scale(' + (1 + eased * 0.06) + ')';
+      if (p < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        setTimeout(finishLoad, 260);
+      }
+    }
+    requestAnimationFrame(tick);
+
+    setTimeout(function () {
+      finishLoad();
+    }, 7000);
+  }
+
+  /* ---------- Entrance / interactions ---------- */
+
   var appears = Array.prototype.slice.call(document.querySelectorAll('.appear'));
 
   appears.forEach(function (el) {
