@@ -137,52 +137,102 @@ body {
   display: grid;
   place-items: center;
   background: #000000;
+  overflow: hidden;
 }
-.loader.exit {
+
+.loader-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(42% 40% at 28% 32%, rgba(110, 150, 255, 0.16), transparent 62%),
+    radial-gradient(46% 44% at 74% 64%, rgba(255, 255, 255, 0.09), transparent 62%),
+    radial-gradient(60% 55% at 50% 52%, rgba(60, 95, 190, 0.13), transparent 66%);
+}
+.loader-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 54px 54px;
+  -webkit-mask-image: radial-gradient(70% 62% at 50% 50%, #000 30%, transparent 78%);
+          mask-image: radial-gradient(70% 62% at 50% 50%, #000 30%, transparent 78%);
+}
+
+.welcome {
+  position: relative;
+  z-index: 1;
+  font-family: var(--serif-font);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(56px, 11vw, 130px);
+  letter-spacing: -0.02em;
+  color: #ffffff;
   opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.55s ease 0.05s;
+  will-change: transform, opacity, filter;
 }
 
 .loader-fill {
   position: absolute;
   inset: 0;
+  z-index: 2;
   background: #ffffff;
-  clip-path: inset(calc(50% - 46px) calc(50% - 46px) round 16px);
+  clip-path: inset(calc(50% - 47px) calc(50% - 47px) round 17px);
   will-change: clip-path;
 }
-.loader.done .loader-fill {
-  clip-path: inset(0 0 0 round 0px);
-  transition: clip-path 0.75s cubic-bezier(0.83, 0, 0.17, 1);
+
+.loader-stack {
+  position: relative;
+  z-index: 3;
 }
 
 .loader-box {
   position: relative;
-  z-index: 2;
-  width: 92px;
-  height: 92px;
-  border-radius: 16px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(0, 0, 0, 0.6));
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 0 44px rgba(255, 255, 255, 0.07);
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  transition: opacity 0.3s ease;
-  will-change: transform;
+  width: 94px;
+  height: 94px;
+  border-radius: 17px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: linear-gradient(160deg, rgba(30, 32, 38, 0.9), rgba(8, 8, 10, 0.94));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 0 30px rgba(140, 170, 255, 0.1);
+  overflow: hidden;
+  will-change: transform, opacity;
 }
-.loader.done .loader-box { opacity: 0; }
+
+.loader-sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.18) 50%, transparent 62%);
+  pointer-events: none;
+}
+
+.loader-num-wrap {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+}
+.loader-num {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+}
+.loader-pct {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
 
 .loader-bar {
-  position: absolute;
-  bottom: 15px;
-  left: 17px;
-  right: 17px;
+  position: relative;
+  width: 58px;
   height: 2px;
   border-radius: 1px;
   background: rgba(255, 255, 255, 0.14);
@@ -194,6 +244,19 @@ body {
   width: 0%;
   border-radius: 1px;
   background: #ffffff;
+}
+
+.loader-status {
+  position: absolute;
+  top: calc(100% + 26px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.38);
 }
 
 body.is-loading { overflow: hidden !important; height: 100%; }
@@ -701,10 +764,16 @@ body.menu-open .burger-bar:nth-child(3) { transform: translateY(-6.5px) rotate(-
 <body style="background:#000;color:#fff" class="is-loading">
 
 <div class="loader" id="loader">
+  <div class="loader-bg" aria-hidden="true"></div>
+  <div class="welcome" id="welcome" aria-hidden="true">Welcome</div>
   <div class="loader-fill" aria-hidden="true"></div>
-  <div class="loader-box" aria-hidden="true">
-    <span class="loader-num">0%</span>
-    <span class="loader-bar"><i></i></span>
+  <div class="loader-stack">
+    <div class="loader-box" aria-hidden="true">
+      <span class="loader-sheen"></span>
+      <span class="loader-num-wrap"><span class="loader-num">0</span><span class="loader-pct">%</span></span>
+      <span class="loader-bar"><i></i></span>
+    </div>
+    <div class="loader-status" aria-hidden="true">Preparing experience</div>
   </div>
 </div>
 <noscript><style>.loader { display: none !important; }</style></noscript>
@@ -791,46 +860,76 @@ body.menu-open .burger-bar:nth-child(3) { transform: translateY(-6.5px) rotate(-
   /* ---------- Loader ---------- */
 
   var loader = document.getElementById('loader');
+  var loadDone = false;
 
-  function finishLoad() {
-    if (!document.body.classList.contains('is-loading')) return;
+  function reveal() {
+    if (loadDone || !loader.parentNode) return;
+    loadDone = true;
 
     var fill = loader.querySelector('.loader-fill');
     var box = loader.querySelector('.loader-box');
+    var welcome = document.getElementById('welcome');
+    var page = document.querySelector('.page');
+
+    function cleanup() {
+      if (loader.parentNode) loader.parentNode.removeChild(loader);
+    }
 
     if (!fill.animate) {
       document.body.classList.remove('is-loading');
-      if (loader.parentNode) loader.parentNode.removeChild(loader);
+      cleanup();
       return;
     }
 
-    box.style.opacity = '0';
+    box.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, easing: 'ease', fill: 'forwards' });
 
-    fill.animate(
+    welcome.animate(
       [
-        { clipPath: 'inset(calc(50% - 46px) calc(50% - 46px) round 16px)' },
-        { clipPath: 'inset(0px 0px 0px round 0px)' }
+        { opacity: 0, transform: 'scale(.88) translateY(16px)', filter: 'blur(12px)' },
+        { opacity: 1, transform: 'scale(1) translateY(0)', filter: 'blur(0px)' }
       ],
-      { duration: 750, easing: 'cubic-bezier(.83, 0, .17, 1)', fill: 'forwards' }
+      { duration: 650, easing: 'cubic-bezier(.16, 1, .3, 1)', fill: 'forwards' }
     );
 
     setTimeout(function () {
-      document.body.classList.remove('is-loading');
-    }, 680);
+      fill.animate(
+        [
+          { clipPath: 'inset(calc(50% - 47px) calc(50% - 47px) round 17px)' },
+          { clipPath: 'inset(0px 0px 0px round 0px)' }
+        ],
+        { duration: 820, easing: 'cubic-bezier(.83, 0, .17, 1)', fill: 'forwards' }
+      );
+      welcome.animate(
+        [
+          { opacity: 1, transform: 'scale(1)', filter: 'blur(0px)' },
+          { opacity: 0, transform: 'scale(1.4)', filter: 'blur(16px)' }
+        ],
+        { duration: 800, easing: 'cubic-bezier(.5, 0, .75, 0)', fill: 'forwards' }
+      );
+      if (page && page.animate) {
+        page.animate(
+          [
+            { filter: 'blur(10px) brightness(.85)', transform: 'scale(1.035)' },
+            { filter: 'blur(0px) brightness(1)', transform: 'scale(1)' }
+          ],
+          { duration: 1000, easing: 'cubic-bezier(.22, 1, .36, 1)' }
+        );
+      }
+      setTimeout(function () {
+        document.body.classList.remove('is-loading');
+      }, 700);
+    }, 1150);
 
     setTimeout(function () {
       var fade = loader.animate(
         [{ opacity: 1 }, { opacity: 0 }],
-        { duration: 560, easing: 'ease', fill: 'forwards' }
+        { duration: 600, easing: 'ease', fill: 'forwards' }
       );
-      fade.onfinish = function () {
-        if (loader.parentNode) loader.parentNode.removeChild(loader);
-      };
-    }, 820);
+      fade.onfinish = cleanup;
+      setTimeout(cleanup, 700);
+    }, 2050);
 
-    setTimeout(function () {
-      if (loader.parentNode) loader.parentNode.removeChild(loader);
-    }, 2500);
+    setTimeout(cleanup, 3400);
   }
 
   if (!loader) {
@@ -839,28 +938,45 @@ body.menu-open .burger-bar:nth-child(3) { transform: translateY(-6.5px) rotate(-
     var numEl = loader.querySelector('.loader-num');
     var barEl = loader.querySelector('.loader-bar i');
     var boxEl = loader.querySelector('.loader-box');
+    var bgEl = loader.querySelector('.loader-bg');
+    var sheenEl = loader.querySelector('.loader-sheen');
     var start = null;
     var DURATION = 1900;
+
+    if (bgEl && bgEl.animate) {
+      bgEl.animate(
+        [{ transform: 'translateY(-14px) scale(1.02)' }, { transform: 'translateY(12px) scale(1.06)' }],
+        { duration: 5200, direction: 'alternate', iterations: Infinity, easing: 'ease-in-out' }
+      );
+    }
+    if (sheenEl && sheenEl.animate) {
+      sheenEl.animate(
+        [{ transform: 'translateX(-140%)' }, { transform: 'translateX(140%)' }],
+        { duration: 1400, iterations: Infinity, easing: 'ease-in-out' }
+      );
+    }
 
     function tick(ts) {
       if (start === null) start = ts;
       var p = Math.min((ts - start) / DURATION, 1);
       var eased = 1 - Math.pow(1 - p, 3);
       var pct = Math.round(eased * 100);
-      numEl.textContent = pct + '%';
+      numEl.textContent = String(pct);
       barEl.style.width = pct + '%';
-      boxEl.style.transform = 'scale(' + (1 + eased * 0.06) + ')';
+      boxEl.style.transform = 'scale(' + (1 + eased * 0.05) + ')';
+      boxEl.style.boxShadow =
+        '0 18px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.14), 0 0 ' +
+        Math.round(20 + eased * 46) + 'px rgba(140,170,255,' + (0.08 + eased * 0.22).toFixed(2) + ')';
+      numEl.style.textShadow = '0 0 ' + Math.round(eased * 20) + 'px rgba(255,255,255,' + (eased * 0.65).toFixed(2) + ')';
       if (p < 1) {
         requestAnimationFrame(tick);
       } else {
-        setTimeout(finishLoad, 260);
+        setTimeout(reveal, 200);
       }
     }
     requestAnimationFrame(tick);
 
-    setTimeout(function () {
-      finishLoad();
-    }, 7000);
+    setTimeout(function () { reveal(); }, 8000);
   }
 
   /* ---------- Entrance / interactions ---------- */
