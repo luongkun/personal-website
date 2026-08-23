@@ -803,9 +803,29 @@ body.menu-open .burger-bar:nth-child(3) { transform: translateY(-6.5px) rotate(-
     }, 1750);
   }
 
-  if (!loader || reduceMotion) {
-    if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+  if (!loader) {
     document.body.classList.remove('is-loading');
+  } else if (reduceMotion) {
+    var rmFill = loader.querySelector('.loader-fill');
+    if (rmFill) rmFill.style.display = 'none';
+    var rmNum = loader.querySelector('.loader-num');
+    var rmBar = loader.querySelector('.loader-bar i');
+    var rmStart = null;
+    function rmTick(ts) {
+      if (rmStart === null) rmStart = ts;
+      var p = Math.min((ts - rmStart) / 700, 1);
+      var pct = Math.round(p * 100);
+      if (rmNum) rmNum.textContent = pct + '%';
+      if (rmBar) rmBar.style.width = pct + '%';
+      if (p < 1) {
+        requestAnimationFrame(rmTick);
+      } else {
+        document.body.classList.remove('is-loading');
+        if (loader.parentNode) loader.parentNode.removeChild(loader);
+      }
+    }
+    requestAnimationFrame(rmTick);
+    setTimeout(finishLoad, 5000);
   } else {
     var numEl = loader.querySelector('.loader-num');
     var barEl = loader.querySelector('.loader-bar i');
