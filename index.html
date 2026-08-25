@@ -260,6 +260,19 @@ body.is-loading .copyright,
 body.is-loading .badge-star,
 body.is-loading .hero h1 em { animation-play-state: paused !important; }
 
+/* ---------- Page transition ---------- */
+
+.transition {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  background: #000000;
+  pointer-events: none;
+  opacity: 0;
+}
+.transition.cover { opacity: 1; pointer-events: auto; transition: opacity 0.5s ease; }
+@media (prefers-reduced-motion: reduce) { .transition { display: none !important; } }
+
 /* ---------- Header ---------- */
 
 .header {
@@ -772,6 +785,7 @@ body.menu-open .burger-bar:nth-child(3) { transform: translateY(-6.5px) rotate(-
 <noscript><style>.loader { display: none !important; }</style></noscript>
 
 <div class="grain" aria-hidden="true"></div>
+<div class="transition" id="transition" aria-hidden="true"></div>
 
 <div class="hero-photo" aria-hidden="true">
   <video autoplay muted loop playsinline
@@ -837,7 +851,7 @@ body.menu-open .burger-bar:nth-child(3) { transform: translateY(-6.5px) rotate(-
       </p>
 
       <div class="hero-actions">
-        <a class="btn btn-solid appear appear--btn" style="--d:0.96s" href="https://github.com/luongkun" target="_blank" rel="noopener">View My Work</a>
+        <a class="btn btn-solid appear appear--btn" style="--d:0.96s" href="work.html" data-nav>View My Work</a>
         <a class="btn btn-ghost appear appear--side" style="--d:1.10s" href="#" data-copy><span class="copy-label">Get in Touch</span></a>
       </div>
     </div>
@@ -999,6 +1013,29 @@ body.menu-open .burger-bar:nth-child(3) { transform: translateY(-6.5px) rotate(-
   });
 
   var EMAIL = 'lucifermeta0210@gmail.com';
+
+  /* ---------- Smooth same-tab navigation ---------- */
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var overlay = document.getElementById('transition');
+  function navigate(href) {
+    if (reduceMotion || !overlay) { window.location.href = href; return; }
+    overlay.classList.add('cover');
+    var done = false;
+    function go() { if (done) return; done = true; window.location.href = href; }
+    overlay.addEventListener('transitionend', go, { once: true });
+    setTimeout(go, 650);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('a[data-nav]'), function (link) {
+    link.addEventListener('click', function (e) {
+      var href = link.getAttribute('href');
+      if (!href || href.charAt(0) === '#') return;
+      e.preventDefault();
+      navigate(href);
+    });
+  });
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted && overlay) overlay.classList.remove('cover');
+  });
 
   function copyEmail() {
     if (navigator.clipboard && navigator.clipboard.writeText) {
