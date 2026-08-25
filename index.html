@@ -161,8 +161,11 @@ body {
 }
 
 .welcome {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 1;
+  display: grid;
+  place-items: center;
   font-family: var(--serif-font);
   font-style: italic;
   font-weight: 400;
@@ -171,15 +174,6 @@ body {
   color: #ffffff;
   opacity: 0;
   will-change: transform, opacity, filter;
-}
-
-.loader-fill {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background: #ffffff;
-  clip-path: inset(calc(50% - 47px) calc(50% - 47px) round 17px);
-  will-change: clip-path;
 }
 
 .loader-stack {
@@ -766,7 +760,6 @@ body.menu-open .burger-bar:nth-child(3) { transform: translateY(-6.5px) rotate(-
 <div class="loader" id="loader">
   <div class="loader-bg" aria-hidden="true"></div>
   <div class="welcome" id="welcome" aria-hidden="true">Welcome</div>
-  <div class="loader-fill" aria-hidden="true"></div>
   <div class="loader-stack">
     <div class="loader-box" aria-hidden="true">
       <span class="loader-sheen"></span>
@@ -866,7 +859,6 @@ body.menu-open .burger-bar:nth-child(3) { transform: translateY(-6.5px) rotate(-
     if (loadDone || !loader.parentNode) return;
     loadDone = true;
 
-    var fill = loader.querySelector('.loader-fill');
     var box = loader.querySelector('.loader-box');
     var welcome = document.getElementById('welcome');
     var page = document.querySelector('.page');
@@ -875,7 +867,7 @@ body.menu-open .burger-bar:nth-child(3) { transform: translateY(-6.5px) rotate(-
       if (loader.parentNode) loader.parentNode.removeChild(loader);
     }
 
-    if (!fill.animate) {
+    if (!box.animate) {
       document.body.classList.remove('is-loading');
       cleanup();
       return;
@@ -892,13 +884,6 @@ body.menu-open .burger-bar:nth-child(3) { transform: translateY(-6.5px) rotate(-
     );
 
     setTimeout(function () {
-      fill.animate(
-        [
-          { clipPath: 'inset(calc(50% - 47px) calc(50% - 47px) round 17px)' },
-          { clipPath: 'inset(0px 0px 0px round 0px)' }
-        ],
-        { duration: 820, easing: 'cubic-bezier(.83, 0, .17, 1)', fill: 'forwards' }
-      );
       welcome.animate(
         [
           { opacity: 1, transform: 'scale(1)', filter: 'blur(0px)' },
